@@ -1,0 +1,79 @@
+#Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backendmutosi-dev
+  namespace: dev
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: backendmutosi-dev
+  template:
+    metadata:
+      labels:
+        app: backendmutosi-dev
+    spec:
+      volumes:
+        - name: vl-be-nfs-dev
+          persistentVolumeClaim:
+            claimName: pvc-be-nfs-dev
+      containers:
+        - name: backendmutosi-dev
+          image: harbor-prods.mutosi.com/backend:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - mountPath: /var/www/html
+              name: vl-be-nfs-dev
+          resources:
+            requests:
+              cpu: 250m
+      imagePullSecrets:
+        - name: harbor-registry-auth #credentials-registry-dev
+      nodeSelector:
+        magnum.openstack.org/nodegroup: qas #default-worker
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backendmutosi-service-dev
+  namespace: dev
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+    name: port80
+    targetPort: 80
+    protocol: TCP
+    #nodePort: 31619
+  selector:
+    app: backendmutosi-dev
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress-backendmutosi-dev
+  namespace: dev
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  tls:
+    - hosts:
+      - dev-api-omni.mutosi.com
+      secretName: mts-cert-dev
+  rules:
+  - host: dev-api-omni.mutosi.com
+    http:
+      paths:
+      - pathType: Prefix
+        path: /
+        backend:
+          service:
+            name: backendmutosi-service-dev
+            port:
+              number: 80

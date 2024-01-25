@@ -1,0 +1,8 @@
+apiVersion: v1
+data:
+  .dockerconfigjson: eyJhdXRocyI6eyJoYXJib3ItcHJvZHMubXV0b3NpLmNvbSI6eyJ1c2VybmFtZSI6ImFkbWluIiwicGFzc3dvcmQiOiJNdXRvc2lAMjAyNSFAIyIsImVtYWlsIjoic3lzdGVtQG11dG9zaS5jb20iLCJhdXRoIjoiWVdSdGFXNDZUWFYwYjNOcFFESXdNalVoUUNNPSJ9fX0=
+kind: Secret
+metadata:
+  name: harbor-registry-auth
+  namespace: dev
+type: kubernetes.io/dockerconfigjson
